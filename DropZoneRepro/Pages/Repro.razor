@@ -1,0 +1,81 @@
+﻿@page "/repro"
+
+<h3>Drop Zone Repro</h3>
+
+<Table Responsive="true" Width="Width.Is50">
+    <TableBody Padding="Padding.Is1">
+    @{
+        foreach (var room in project.Rooms)
+        {
+            foreach(var callout in room.Callouts)
+            {
+                <TableRow>
+                    <TableRowCell>
+                        <DropContainer TItem="CalloutPhoto" Items="callout.CalloutPhotos"
+                            Context="sortCalloutPhoto"
+                            ItemsFilter="@((item, dropZone) => true)"
+                            ItemDropped="@ItemDropped">
+                            <ChildContent>
+                                <DropZone TItem="CalloutPhoto" AllowReorder="true" Name="@callout.CalloutName">
+                                    <Heading Size="HeadingSize.Is5" Margin="Margin.Is1.FromBottom">Sort </Heading>
+                                </DropZone>
+                            </ChildContent>
+                            @*no @key is available for ItemTemplate*@
+                            <ItemTemplate>
+                                @*not sure if this is the correct element to assign the @key to*@
+                                    <Card @key="@sortCalloutPhoto.CalloutPhotoName">
+                                    <CardBody>
+                                            <Text>@sortCalloutPhoto.CalloutPhotoName</Text>
+                                    </CardBody>
+                                </Card>
+                            </ItemTemplate>
+                        </DropContainer>
+                    </TableRowCell>
+                </TableRow>
+            }
+        }
+    }
+    </TableBody>
+    </Table>
+
+@code {
+    private Project project = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        project.ProjectName = "Drop Zone Repro Project";
+
+        // add some Rooms
+        List<Callout> callouts = new();
+        for (int r = 1; r < 4; r++)
+        {
+            for (int c = 1; c < 4; c++)
+            {
+                // add some Callouts
+                Callout callout = new() { CalloutName = $"Callout {c}", CalloutIndex = c };
+
+                // add some Photos
+                for (int p = 1; p < 4; p++)
+                {
+                    CalloutPhoto photo = new() { CalloutPhotoName = $"Photo {p}" };
+                    callout.CalloutPhotos.Add(photo);
+                }
+
+                callouts.Add(callout);
+            }
+
+            Room room = new() { RoomName = $"Room {r}" };
+            room.Callouts.AddRange(callouts);
+
+            project.Rooms.Add(room);
+        }
+    }
+
+    private void ItemDropped(DraggableDroppedEventArgs<CalloutPhoto> dropItem)
+    {
+        // append the Index from the list
+        dropItem.Item.CalloutPhotoName += $" - Index Updated: {dropItem.IndexInZone}";
+    }
+    
+
+}
